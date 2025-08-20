@@ -2,21 +2,26 @@ from fastapi import FastAPI, Depends, HTTPException, Header
 from routes import survey
 import os
 
-app = FastAPI()
+app = FastAPI(title="Survey Alignment API")
 
-app.include_router(survey.router)
+# --- Public endpoints (useful for testing/health) ---
+@app.get("/")
+def root():
+    return {"status": "ok", "message": "Survey alignment API is running 🎉"}
 
-# API key gate 
-REPORT_API_KEY = os.getenv("REPORT_API_KEY")  
+@app.get("/health")
+def health():
+    return {"ok": True}
 
-def verify_api_key(x_api_key: str = Header(None)):
-    # if you set a key in the environment, require it
-    if REPORT_API_KEY:
-        if x_api_key == REPORT_API_KEY:
+# --- API key gate (optional: only enforced if env var is set) ---
+API_KEY = os.getenv("PRIVATE_API_KEY")  # match your Render env var name
+
+def verify_api_key(x_api_key: str | None = Header(default=None)):
+    if API_KEY:                   # only enforce when set
+        if x_api_key == API_KEY:
             return True
         raise HTTPException(status_code=401, detail="Invalid or missing API key")
-    # if no key is set (e.g., local dev), allow all
     return True
 
-# protect all routes (you can limit this to /analysis only if you want)
+# Protect all survey routes with the API key (when set)
 app.include_router(survey.router, dependencies=[Depends(verify_api_key)])
