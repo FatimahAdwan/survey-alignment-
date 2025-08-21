@@ -4,18 +4,17 @@ import os
 
 app = FastAPI(title="Survey Alignment API")
 
-# --- Public endpoints (useful for testing/health) ---
-@app.get("/")
-def root():
-    return {"status": "ok", "message": "Survey alignment API is running 🎉"}
+# # Public endpoints just for testing
+# @app.get("/")
+# def root():
+#     return {"status": "ok", "message": "Survey alignment API is running 🎉"}
 
-@app.get("/health")
-def health():
-    return {"ok": True}
+# @app.get("/health")
+# def health():
+#     return {"ok": True}
 
-# --- API key gate (optional: only enforced if env var is set) ---
-API_KEY = os.getenv("PRIVATE_API_KEY")  # match your Render env var name
-
+# Private key for protection
+API_KEY = os.getenv("PRIVATE_API_KEY")  
 def verify_api_key(x_api_key: str | None = Header(default=None)):
     if API_KEY:                   # only enforce when set
         if x_api_key == API_KEY:
@@ -23,5 +22,5 @@ def verify_api_key(x_api_key: str | None = Header(default=None)):
         raise HTTPException(status_code=401, detail="Invalid or missing API key")
     return True
 
-# Protect all survey routes with the API key (when set)
+# Protect all survey routes with the API key 
 app.include_router(survey.router, dependencies=[Depends(verify_api_key)])
