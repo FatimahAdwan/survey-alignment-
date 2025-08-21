@@ -74,8 +74,8 @@ def generate_next_question(data: AnswerRequest) -> FollowUpResponse:
     total_question_count = int(progress.get("total_question_count", 0))
     next_total_count = total_question_count + 1
     next_question_id = f"q{next_total_count}"
-    # make sure the survey doesn't go beyond the theme
     
+    # make sure the survey doesn't go beyond the theme
     if set(completed_themes) == set(theme_sequence):
         mark_survey_complete(data.survey_id)
         return FollowUpResponse(
@@ -172,7 +172,7 @@ The NEXT question ID MUST be exactly "{next_question_id}". Do not use any other 
 3. If Partial:
    a. “Which goal is clearest to you?” then “What makes it clear?” or “What’s unclear about the others?”
 4. If No:
-   b “What prevents you from knowing the goals?” Options: Never told / Too complex / Not communicated
+   b “What prevents you from knowing the goals?” Options: Never told / Too complex  / Not clearly communicated 
 
 #### Measurement of Progress:
 1. Start: “Are your daily tasks measured against [G1], [G2], [G3]?” Options: Always / Sometimes / Never
@@ -232,7 +232,7 @@ The NEXT question ID MUST be exactly "{next_question_id}". Do not use any other 
         # Hard enforce our global continuous ID
         result["question_id"] = next_question_id
 
-        # Cheap exact-duplicate guard (optional, keeps things clean)
+        # Cheap exact-duplicate guard
         new_q_text = (result.get("text") or "").strip()
         if any((new_q_text.lower() == prev.lower()) for prev in question_history):
             # If exact duplicate, nudge the text a bit so it's not identical

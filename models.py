@@ -20,7 +20,7 @@ class AnswerRequest(BaseModel):
     survey_id: str
     question_id: str
     question_text: str
-    answer: Any  # <-- Accepts str, int, list, bool, etc.
+    answer: Any  
 
 class FollowUpResponse(BaseModel):
     question_id: str

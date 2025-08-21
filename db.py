@@ -26,10 +26,10 @@ def save_response(survey_id, question_id, question_text, answer, theme:str):
 # Initialize progress tracking
 def init_survey_progress(
     survey_id: str,
-    question_id: str,           # "q1"
-    theme: str,                 # e.g. "clarity of goals" (use exact casing you use in survey.py)
+    question_id: str,          
+    theme: str,                 
     all_themes: list,
-    first_question_text: str    # e.g. "Do you know these goals?"
+    first_question_text: str    
 ):
     supabase.table("survey_progress").insert({
         "survey_id": survey_id,

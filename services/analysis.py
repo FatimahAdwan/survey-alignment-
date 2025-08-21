@@ -1,4 +1,3 @@
-# services/analysis.py
 import os
 import json
 from collections import Counter, defaultdict
@@ -12,10 +11,10 @@ load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key)
 
-# To control cost/latency: cap how many answers we LLM-score per theme
-MAX_RESPONSES_PER_THEME = 60   # adjust as you like (per theme)
+# To control cost/latency: cap how many answers will LLM-score per theme
+MAX_RESPONSES_PER_THEME = 60   
 
-# -------- LLM helpers --------
+# LLM helpers 
 
 def llm_label_sentiment(text: str) -> str:
     """Classify survey answer as positive / neutral / negative using OpenAI."""
@@ -95,7 +94,7 @@ Rules:
     except Exception:
         trending, recs = [], []
 
-    # --- fallback enforcement ---
+    # fallback enforcement
     if len(trending) < 2:
         trending = [
             f"Mixed clarity around {theme.lower()} across roles",
@@ -154,7 +153,7 @@ Return JSON ONLY in this exact shape:
         }
 
 
-# -------- Helpers --------
+# Helpers 
 
 def _to_percentages(counts: Counter) -> Dict[str, str]:
     total = sum(counts.values()) or 1
@@ -207,7 +206,7 @@ def _make_theme_ranking(theme_reports: Dict[str, Dict]) -> List[Dict]:
     return ranking
 
 
-# -------- Main builder --------
+# Main builder
 
 def build_company_report(company_token: str) -> dict:
     """Company-level, anonymized, theme-based report."""
@@ -253,7 +252,7 @@ def build_company_report(company_token: str) -> dict:
             counts[label] += 1
             overall_counts[label] += 1
 
-        # --- NEW: include raw counts alongside percentages ---
+        # include raw counts alongside percentages 
         counts_dict = {
             "positive": counts.get("positive", 0),
             "neutral":  counts.get("neutral", 0),
@@ -303,7 +302,7 @@ def build_company_report(company_token: str) -> dict:
         "roles": dict(role_counts),
         "business_areas": dict(dept_counts),
         "themes": theme_reports,
-        "overall_sentiment_counts": overall_counts_dict,  # NEW
+        "overall_sentiment_counts": overall_counts_dict,  
         "overall_sentiment": overall_sentiment,
         "overall_summary": overall,
         "theme_ranking": theme_ranking,

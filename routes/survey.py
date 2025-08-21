@@ -56,7 +56,7 @@ def answer_question(data: AnswerRequest):
 
 @router.get("/progress/{survey_id}")
 def get_progress(survey_id: str):
-    # 1) Load progress state
+    # Load progress state
     prog_res = (
         supabase.table("survey_progress")
         .select("*")
@@ -69,7 +69,7 @@ def get_progress(survey_id: str):
 
     progress = prog_res.data
 
-    # 2) Load a bit of context (role, dept, goals) for the UI
+    # Load a bit of context (role, dept, goals) for the UI
     survey_res = (
         supabase.table("surveys")
         .select("role, business_area, goals")
@@ -79,7 +79,7 @@ def get_progress(survey_id: str):
     )
     survey_ctx = survey_res.data or {}
 
-    # 3) Normalize JSON fields (they might be jsonb or json-encoded strings)
+    # Normalize JSON fields (they might be jsonb or json-encoded strings)
     def ensure_list(v):
         if v is None:
             return []
@@ -111,7 +111,7 @@ def get_progress(survey_id: str):
     completed = bool(progress.get("completed", False))
     total_question_count = int(progress.get("total_question_count", 0))
 
-    # 4) Convenience fields for the frontend
+    #  Convenience fields for the frontend consumption
     themes_left = [t for t in theme_sequence if t not in completed_themes and t != current_theme]
     last_question_text = question_history[-1] if question_history else None
     next_question_id = None if completed else f"q{total_question_count + 1}"
