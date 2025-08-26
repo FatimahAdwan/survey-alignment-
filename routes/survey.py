@@ -1,3 +1,5 @@
+import re
+import difflib
 from fastapi import APIRouter, HTTPException
 from models import StartSurveyRequest, QuestionResponse, AnswerRequest, FollowUpResponse
 from services.llm_logic import generate_first_question, generate_next_question
@@ -6,13 +8,53 @@ from services.analysis import build_company_report
 
 router = APIRouter()
 
+def _normalize_company(name: str) -> str:
+    s = (name or "").lower()
+    # keep only letters/numbers; remove spaces/punctuation so variations match
+    return re.sub(r"[^a-z0-9]+", "", s)
+
+
 def resolve_company_token(company_name: str) -> str:
     """
-    Temporary pass-through: use the typed company name as the token.
-    This keeps your current DB schema (company_token column) working
-    without needing a `companies` table.
+    Fuzzy-map the typed company name to an existing company_token seen in `surveys`.
+    If no close match exists, create a new normalized token from the typed name.
+    Examples that will map together: "GTBank", "gt bank", "Guaranty Trust Bank".
     """
-    return (company_name or "").strip()
+    candidate = _normalize_company(company_name)
+
+    # Get all existing tokens already stored in surveys
+    existing_rows = (
+        supabase.table("surveys")
+        .select("company_token")
+        .execute()
+    ).data or []
+
+    existing_tokens = sorted({
+        (row.get("company_token") or "").strip()
+        for row in existing_rows if row.get("company_token")
+    })
+
+    if not existing_tokens:
+        # first company ever; use normalized typed name
+        return candidate
+
+    # Build a normalized view of existing tokens
+    norm_map = {tok: _normalize_company(tok) for tok in existing_tokens}
+
+    # 1) Exact normalized match?
+    for tok, norm in norm_map.items():
+        if norm == candidate:
+            return tok
+
+    # 2) Fuzzy normalized match (cutoff 0.80 is a good default)
+    best_norm = difflib.get_close_matches(candidate, list(norm_map.values()), n=1, cutoff=0.80)
+    if best_norm:
+        for tok, norm in norm_map.items():
+            if norm == best_norm[0]:
+                return tok
+
+    # 3) No good match → treat as a new company; use normalized typed name
+    return candidate
 
 @router.post("/start-survey", response_model=QuestionResponse)
 def start_survey(data: StartSurveyRequest):
