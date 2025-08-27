@@ -17,12 +17,18 @@ def _normalize_company(name: str) -> str:
 def resolve_company_token(company_name: str) -> str:
     """
     Fuzzy-map the typed company name to an existing company_token seen in `surveys`.
-    If no close match exists, create a new normalized token from the typed name.
-    Examples that will map together: "GTBank", "gt bank", "Guaranty Trust Bank".
+    - Uses a normalized form for matching.
+    - Returns the stored canonical name if a close match exists.
+    - Otherwise, saves the new typed name as canonical.
     """
-    candidate = _normalize_company(company_name)
+    import difflib, re
 
-    # Get all existing tokens already stored in surveys
+    def _normalize(name: str) -> str:
+        return re.sub(r"[^a-z0-9]+", "", (name or "").lower())
+
+    candidate_norm = _normalize(company_name)
+
+    # Pull all existing company_token values
     existing_rows = (
         supabase.table("surveys")
         .select("company_token")
@@ -30,31 +36,28 @@ def resolve_company_token(company_name: str) -> str:
     ).data or []
 
     existing_tokens = sorted({
-        (row.get("company_token") or "").strip()
-        for row in existing_rows if row.get("company_token")
+        row.get("company_token") for row in existing_rows if row.get("company_token")
     })
 
     if not existing_tokens:
-        # first company ever; use normalized typed name
-        return candidate
+        return company_name.strip()  # first entry, keep original as canonical
 
-    # Build a normalized view of existing tokens
-    norm_map = {tok: _normalize_company(tok) for tok in existing_tokens}
+    norm_map = {tok: _normalize(tok) for tok in existing_tokens}
 
-    # 1) Exact normalized match?
+    # Exact normalized match
     for tok, norm in norm_map.items():
-        if norm == candidate:
-            return tok
+        if norm == candidate_norm:
+            return tok  # return the original stored (canonical) token
 
-    # 2) Fuzzy normalized match (cutoff 0.80 is a good default)
-    best_norm = difflib.get_close_matches(candidate, list(norm_map.values()), n=1, cutoff=0.80)
+    # Fuzzy normalized match
+    best_norm = difflib.get_close_matches(candidate_norm, list(norm_map.values()), n=1, cutoff=0.80)
     if best_norm:
         for tok, norm in norm_map.items():
             if norm == best_norm[0]:
-                return tok
+                return tok  # return canonical stored token
 
-    # 3) No good match → treat as a new company; use normalized typed name
-    return candidate
+    # If no match, use typed input as canonical
+    return company_name.strip()
 
 @router.post("/start-survey", response_model=QuestionResponse)
 def start_survey(data: StartSurveyRequest):
