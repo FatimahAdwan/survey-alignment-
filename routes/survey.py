@@ -21,8 +21,7 @@ def resolve_company_token(company_name: str) -> str:
     - Returns the stored canonical name if a close match exists.
     - Otherwise, saves the new typed name as canonical.
     """
-    import difflib, re
-
+    
     def _normalize(name: str) -> str:
         return re.sub(r"[^a-z0-9]+", "", (name or "").lower())
 
@@ -40,7 +39,7 @@ def resolve_company_token(company_name: str) -> str:
     })
 
     if not existing_tokens:
-        return company_name.strip()  # first entry, keep original as canonical
+        return company_name.strip().title()  # first entry, keep original as canonical
 
     norm_map = {tok: _normalize(tok) for tok in existing_tokens}
 
