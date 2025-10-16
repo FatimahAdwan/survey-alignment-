@@ -48,6 +48,17 @@ def resolve_company_token(company_name: str) -> str:
         if norm == candidate_norm:
             return tok  # return the original stored (canonical) token
 
+        # Handle acronym / abbreviation mapping (e.g., GTB -> Guaranty Trust Bank)
+    def is_acronym_match(short: str, long: str) -> bool:
+        # Build acronym from longer string
+        long_acronym = "".join(word[0] for word in re.findall(r"[A-Za-z]+", long))
+        return short.lower() == long_acronym.lower()
+
+    # Try exact acronym match
+    for tok in existing_tokens:
+        if is_acronym_match(candidate_norm, tok) or is_acronym_match(tok, candidate_norm):
+            return tok  # map GTB → Guaranty Trust Bank
+
     # Fuzzy normalized match
     best_norm = difflib.get_close_matches(candidate_norm, list(norm_map.values()), n=1, cutoff=0.80)
     if best_norm:
