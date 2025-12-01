@@ -31,26 +31,28 @@ def init_survey_progress(
     all_themes: list,
     first_question_text: str    
 ):
-    result = supabase.table("survey_progress").insert({
-        "survey_id": survey_id,
-        "current_question_id": question_id,                 # "q1"
-        "current_theme": theme,                             # first theme
-        "theme_sequence": all_themes,                       # array column
-        "completed_themes": [],                             # array column
-        # Store TEXTS in history so LLM can avoid repeats
-        "question_history": json.dumps([first_question_text]),
-        # Start per-theme counter at 1 (first Q already asked)
-        "theme_question_counts": json.dumps({theme: 1}),
-        # Start global continuous counter at 1
-        "total_question_count": 1,
-        "completed": False
-    }).execute()
+    
+    try:
+        result = supabase.table("survey_progress").insert({
+            "survey_id": survey_id,
+            "current_question_id": question_id,                 # "q1"
+            "current_theme": theme,                             # first theme
+            "theme_sequence": all_themes,                       # array column
+            "completed_themes": [],                             # array column
+            # Store TEXTS in history so LLM can avoid repeats
+            "question_history": json.dumps([first_question_text]),
+            # Start per-theme counter at 1 (first Q already asked)
+            "theme_question_counts": json.dumps({theme: 1}),
+            # Start global continuous counter at 1
+            "total_question_count": 1,
+            "completed": False
+        }).execute()
 
-    if result.error:
-        print("🔥 ERROR inserting into survey_progress:", result.error)
-    else:
         print("✅ survey_progress inserted:", result.data)
 
+    except Exception as e:
+        print("🔥 ERROR inserting into survey_progress:", str(e))
+        raise
 
 
 # Update progress with new question + theme
