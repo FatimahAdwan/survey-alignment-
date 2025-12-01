@@ -71,6 +71,9 @@ def resolve_company_token(company_name: str) -> str:
 
 @router.post("/start-survey", response_model=QuestionResponse)
 def start_survey(data: StartSurveyRequest):
+    print("📥 Incoming start-survey payload:", data.dict())
+    print("📥 Raw model:", data)
+
     # company_name -> company_token (temporary: direct pass-through)
     company_token = resolve_company_token(data.company_name)
 
