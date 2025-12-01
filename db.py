@@ -31,7 +31,7 @@ def init_survey_progress(
     all_themes: list,
     first_question_text: str    
 ):
-    supabase.table("survey_progress").insert({
+    result = supabase.table("survey_progress").insert({
         "survey_id": survey_id,
         "current_question_id": question_id,                 # "q1"
         "current_theme": theme,                             # first theme
@@ -46,6 +46,10 @@ def init_survey_progress(
         "completed": False
     }).execute()
 
+    if result.error:
+        print("🔥 ERROR inserting into survey_progress:", result.error)
+    else:
+        print("✅ survey_progress inserted:", result.data)
 
 
 

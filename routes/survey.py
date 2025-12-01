@@ -87,6 +87,11 @@ def start_survey(data: StartSurveyRequest):
         "goals": data.goals
     }).execute()
 
+    if response.error:
+        print("🔥 ERROR inserting into surveys:", response.error)
+    else:
+        print("✅ Inserted into surveys:", response.data)
+
     survey_id = response.data[0]["id"]
 
     # Defining full theme sequence (consistent casing)
