@@ -87,10 +87,17 @@ def start_survey(data: StartSurveyRequest):
         "goals": data.goals
     }).execute()
 
-    if response.error:
+    print("🔍 Insert response raw:", response)
+    # Detect workflow errors correctly:
+    if hasattr(response, "error") and response.error:
         print("🔥 ERROR inserting into surveys:", response.error)
-    else:
-        print("✅ Inserted into surveys:", response.data)
+        raise HTTPException(status_code=500, detail="Database insert failed")
+
+    if not response.data:
+        print("🔥 ERROR: empty data returned from Supabase insert.")
+        raise HTTPException(status_code=500, detail="Unexpected empty insert response")
+    
+    print("✅ Inserted into surveys:", response.data)
 
     survey_id = response.data[0]["id"]
 
