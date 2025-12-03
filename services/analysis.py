@@ -31,7 +31,7 @@ Answer:
 {text.strip()}
 """
         resp = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": "You are a precise sentiment classifier that outputs only one word."},
                 {"role": "user", "content": prompt}
@@ -65,7 +65,7 @@ Answers (summarize patterns; do NOT quote exact sentences):
 - """ + "\n- ".join([a.strip() for a in sample if a and a.strip()])
 
         resp = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are an expert HR insights analyst. Be concise, actionable, and anonymous."},
                 {"role": "user", "content": prompt_context},
