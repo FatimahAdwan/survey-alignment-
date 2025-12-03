@@ -31,7 +31,7 @@ Answer:
 {text.strip()}
 """
         resp = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are a precise sentiment classifier that outputs only one word."},
                 {"role": "user", "content": prompt}
